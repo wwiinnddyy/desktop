@@ -41,6 +41,36 @@ on:
       APPLE_TEAM_ID:
       APPLE_APPLICATION_CERT:
       APPLE_APPLICATION_CERT_PASSWORD:
+  workflow_dispatch:
+    inputs:
+      repository:
+        default: wwiinnddyy/desktop
+        required: false
+        type: string
+      ref:
+        default: development
+        required: true
+        type: string
+      upload-artifacts:
+        default: true
+        required: false
+        type: boolean
+      environment:
+        default: development
+        type: string
+        required: true
+      sign:
+        default: false
+        type: boolean
+        required: false
+      error-reporting-endpoint:
+        default: ''
+        type: string
+        required: false
+      non-fatal-error-reporting-endpoint:
+        default: ''
+        type: string
+        required: false
 
 env:
   NODE_VERSION: 24.19.0
