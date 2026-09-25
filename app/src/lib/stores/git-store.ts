@@ -978,7 +978,7 @@ export class GitStore extends BaseStore {
   public async fetch(
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
-  ): Promise<void> {
+  ): Promise<boolean> {
     // Use a map as a simple way of getting a unique set of remotes.
     // Note that maps iterate in insertion order so the order in which
     // we insert these will affect the order in which we fetch them
@@ -999,12 +999,16 @@ export class GitStore extends BaseStore {
       remotes.set(this.upstreamRemote.name, this.upstreamRemote)
     }
 
+    let fetchSucceeded = true
+
     if (remotes.size > 0) {
-      await this.fetchRemotes(
+      fetchSucceeded = await this.fetchRemotes(
         [...remotes.values()],
         backgroundTask,
         progressCallback
       )
+    } else {
+      fetchSucceeded = false
     }
 
     // check the upstream ref against the current branch to see if there are
@@ -1028,6 +1032,8 @@ export class GitStore extends BaseStore {
     }
 
     this.emitUpdate()
+
+    return fetchSucceeded
   }
 
   /**
@@ -1043,26 +1049,35 @@ export class GitStore extends BaseStore {
     remotes: ReadonlyArray<IRemote>,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!remotes.length) {
-      return
+      return false
     }
 
     const weight = 1 / remotes.length
+    let fetchSucceeded = true
 
     for (let i = 0; i < remotes.length; i++) {
       const remote = remotes[i]
       const startProgressValue = i * weight
 
-      await this.fetchRemote(remote, backgroundTask, progress => {
-        if (progress && progressCallback) {
-          progressCallback({
-            ...progress,
-            value: startProgressValue + progress.value * weight,
-          })
+      const remoteFetchSucceeded = await this.fetchRemote(
+        remote,
+        backgroundTask,
+        progress => {
+          if (progress && progressCallback) {
+            progressCallback({
+              ...progress,
+              value: startProgressValue + progress.value * weight,
+            })
+          }
         }
-      })
+      )
+
+      fetchSucceeded = remoteFetchSucceeded && fetchSucceeded
     }
+
+    return fetchSucceeded
   }
 
   /**
@@ -1078,7 +1093,7 @@ export class GitStore extends BaseStore {
     remote: IRemote,
     backgroundTask: boolean,
     progressCallback?: (fetchProgress: IFetchProgress) => void
-  ): Promise<void> {
+  ): Promise<boolean> {
     const repo = this.repository
     const retryAction: RetryAction = {
       type: RetryActionType.Fetch,
@@ -1105,6 +1120,8 @@ export class GitStore extends BaseStore {
         log.error('Failed updating remote HEAD', e)
       )
     }
+
+    return fetchSucceeded === true
   }
 
   /**

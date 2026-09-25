@@ -95,6 +95,9 @@ import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
 import { NoRepositoriesView } from './no-repositories'
+import { HomeView } from './home/home'
+import { HomeToolbarButton } from './toolbar/home-toolbar-button'
+import { summarize, toHomeRepositoryInfos } from '../lib/home/aggregate'
 import { ConfirmRemoveRepository } from './remove-repository'
 import { TermsAndConditions } from './terms-and-conditions'
 import { PushBranchCommits } from './branches'
@@ -323,6 +326,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.setState(state)
     })
 
+    // The Home view's store lives outside of the app state, which means it has
+    // to poke us itself whenever a scan or a bulk pull makes progress.
+    props.appStore.homeStore.onDidUpdate(() => this.forceUpdate())
+
     props.appStore.onDidError(error => {
       props.dispatcher.postError(error)
     })
@@ -468,6 +475,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showChanges(true)
       case 'show-history':
         return this.showHistory(true)
+      case 'show-home':
+        return this.showHome()
       case 'choose-repository':
         return this.chooseRepository()
       case 'add-local-repository':
@@ -958,6 +967,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.showFoldout({
       type: FoldoutType.Repository,
     })
+  }
+
+  private showHome() {
+    this.props.dispatcher.showHome()
   }
 
   private showBranches() {
@@ -3381,6 +3394,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onSelectionChanged={this.onSelectionChanged}
         repositories={repositories}
         recentRepositories={this.state.recentRepositories}
+        showHome={this.state.showHome}
         localRepositoryStateLookup={this.state.localRepositoryStateLookup}
         askForConfirmationOnRemoveRepository={
           this.state.askForConfirmationOnRepositoryRemoval
@@ -3498,7 +3512,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     let icon: OcticonSymbol
     let title: string
-    if (repository) {
+    if (this.state.showHome) {
+      icon = octicons.home
+      title = 'Home'
+    } else if (repository) {
       const alias = repository instanceof Repository ? repository.alias : null
       icon = iconForRepository(repository)
       title = alias ?? repository.name
@@ -3925,11 +3942,59 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div className="sidebar-section" style={{ width }}>
           {this.renderRepositoryToolbarButton()}
         </div>
+        {this.state.showHome ? this.renderHomeToolbarButton() : null}
         {this.renderWorktreeToolbarButton()}
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
+  }
+
+  /** The repositories that the Home view knows about, ie not the cloning ones. */
+  private getLocalRepositories(): ReadonlyArray<Repository> {
+    return this.state.repositories.filter(
+      (x): x is Repository => x instanceof Repository
+    )
+  }
+
+  /**
+   * The numbers behind the Home toolbar button are derived here rather than
+   * passed up from the Home view. The toolbar and the view are siblings, and
+   * both of them need to be able to say the same thing about what's behind.
+   */
+  private getHomeSummary() {
+    const homeStore = this.props.appStore.homeStore
+
+    return summarize(
+      toHomeRepositoryInfos(
+        this.getLocalRepositories(),
+        this.state.localRepositoryStateLookup,
+        homeStore.getState().scans
+      )
+    )
+  }
+
+  private renderHomeToolbarButton() {
+    const homeStore = this.props.appStore.homeStore
+    const summary = this.getHomeSummary()
+
+    return (
+      <HomeToolbarButton
+        pullableRepositoryCount={summary.pullableCount}
+        pullableCommitCount={summary.pullableCommitCount}
+        pullAll={homeStore.getState().pullAll}
+        onPullAll={this.onPullAllUpdates}
+        onCancel={this.onCancelPullAllUpdates}
+      />
+    )
+  }
+
+  private onPullAllUpdates = () => {
+    this.props.appStore.homeStore.pullAllUpdates(this.getLocalRepositories())
+  }
+
+  private onCancelPullAllUpdates = () => {
+    this.props.appStore.homeStore.cancelPullAllUpdates()
   }
 
   private renderRepository() {
@@ -3952,6 +4017,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const state = this.state
+
+    if (state.showHome) {
+      return (
+        <HomeView
+          dispatcher={this.props.dispatcher}
+          homeStore={this.props.appStore.homeStore}
+          repositories={this.getLocalRepositories()}
+          accounts={state.accounts}
+          localRepositoryStateLookup={state.localRepositoryStateLookup}
+          sidebarWidth={state.sidebarWidth}
+        />
+      )
+    }
 
     const selectedState = state.selectedState
     if (!selectedState) {

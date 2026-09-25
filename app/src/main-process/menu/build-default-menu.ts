@@ -183,6 +183,12 @@ export function buildDefaultMenuTemplate({
     label: __DARWIN__ ? 'View' : '&View',
     submenu: [
       {
+        label: __DARWIN__ ? 'Show Home' : 'Home',
+        id: 'show-home',
+        accelerator: 'CmdOrCtrl+Alt+H',
+        click: emit('show-home'),
+      },
+      {
         label: __DARWIN__ ? 'Show Changes' : '&Changes',
         id: 'show-changes',
         accelerator: 'CmdOrCtrl+1',

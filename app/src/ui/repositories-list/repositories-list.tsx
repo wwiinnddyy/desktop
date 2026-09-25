@@ -23,6 +23,7 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import memoizeOne from 'memoize-one'
 import { KeyboardShortcut } from '../keyboard-shortcut/keyboard-shortcut'
 import { generateRepositoryListContextMenu } from '../repositories-list/repository-list-item-context-menu'
+import { HomeListItem } from './home-list-item'
 import { enableWorktreeSupport } from '../../lib/feature-flag'
 import { SectionFilterList } from '../lib/section-filter-list'
 import { assertNever } from '../../lib/fatal-error'
@@ -73,6 +74,9 @@ interface IRepositoriesListProps {
 
   /** The text entered by the user to filter their repository list */
   readonly filterText: string
+
+  /** Whether or not the Home view is currently being shown */
+  readonly showHome: boolean
 
   readonly dispatcher: Dispatcher
 }
@@ -321,6 +325,21 @@ export class RepositoriesList extends React.Component<
     (group: number) =>
       this.getGroupLabel(groups[group].identifier)
 
+  private getLocalRepositoryCount = () =>
+    this.props.repositories.filter(r => r instanceof Repository).length
+
+  private onHomeButtonClick = () => {
+    this.props.dispatcher.showHome()
+  }
+
+  private renderHomeListItem = () => (
+    <HomeListItem
+      isActive={this.props.showHome}
+      repositoryCount={this.getLocalRepositoryCount()}
+      onClick={this.onHomeButtonClick}
+    />
+  )
+
   public render() {
     const groups = this.getRepositoryGroups(
       this.props.repositories,
@@ -347,6 +366,7 @@ export class RepositoriesList extends React.Component<
           renderItem={this.renderItem}
           renderRowFocusTooltip={this.renderRowFocusTooltip}
           renderGroupHeader={this.renderGroupHeader}
+          renderPreList={this.renderHomeListItem}
           onItemClick={this.onItemClick}
           renderPostFilter={this.renderPostFilter}
           renderNoItems={this.renderNoItems}

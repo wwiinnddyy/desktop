@@ -304,6 +304,15 @@ export class Dispatcher {
     return this.appStore._selectRepository(repository)
   }
 
+  /**
+   * Show the Home view, ie the aggregate view of all added repositories, and
+   * get out of the way if the repository switcher happens to be open.
+   */
+  public showHome(): void {
+    this.appStore._selectHome()
+    this.closeFoldout(FoldoutType.Repository)
+  }
+
   /** Change the selected section in the repository. */
   public changeRepositorySection(
     repository: Repository,

@@ -1,0 +1,481 @@
+@import '../../mixins';
+
+/**
+ * The Home view: an overview of every repository that's been added to the app.
+ *
+ * The layout intentionally mirrors `#repository` (see ui/_repository.scss) so
+ * that switching between the two feels like moving around one application
+ * rather than opening a different one.
+ */
+#home {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  border-top: var(--base-border);
+  height: 100%;
+  min-height: 0;
+
+  > .focus-container {
+    display: flex;
+  }
+
+  &-sidebar {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--box-border-color);
+
+    .tab-bar {
+      flex-shrink: 0;
+    }
+  }
+}
+
+.home-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/** The "Needs attention" row above the repository switcher's Recent group. */
+.home-list-item {
+  appearance: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  padding: 0 var(--spacing);
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--box-border-color);
+  background: transparent;
+  color: currentColor;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  text-align: left;
+  cursor: default;
+
+  &:hover {
+    background-color: var(--box-hover-background-color);
+    color: var(--box-hover-text-color);
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--focus-color);
+    outline-offset: -1px;
+  }
+
+  &[aria-current='true'] {
+    background-color: var(--box-selected-background-color);
+    color: var(--box-selected-text-color);
+  }
+
+  .icon-for-repository {
+    flex-shrink: 0;
+    width: 16px;
+    margin-right: var(--spacing-half);
+  }
+
+  .name {
+    @include ellipsis;
+    flex-grow: 1;
+  }
+
+  .repository-count {
+    flex-shrink: 0;
+    margin-left: var(--spacing-half);
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+  }
+}
+
+/** The searchable list of repositories. */
+.home-repository-list,
+.home-commit-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.home-repository-list-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--spacing);
+
+  > .icon {
+    flex-shrink: 0;
+    width: 16px;
+    margin-right: var(--spacing-half);
+  }
+
+  .details {
+    flex: 1 1 auto;
+    min-width: 0;
+
+    .title {
+      @include ellipsis;
+      font-weight: var(--font-weight-semibold);
+
+      .prefix {
+        color: var(--text-secondary-color);
+        font-weight: normal;
+      }
+    }
+
+    .subtitle {
+      @include ellipsis;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+
+      .branch {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-third);
+        min-width: 0;
+      }
+
+      .path {
+        @include ellipsis;
+      }
+
+      .missing {
+        color: var(--md-danger-fg-color);
+      }
+    }
+  }
+
+  .indicators {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    gap: var(--spacing-half);
+    margin-left: var(--spacing-half);
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+
+    .ahead,
+    .behind {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-third);
+    }
+  }
+}
+
+/** The cross repository commit feed. */
+.home-commit-list-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 var(--spacing);
+
+  .summary {
+    @include ellipsis;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .meta {
+    @include ellipsis;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-third);
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+
+    .sha {
+      font-family: var(--font-family-monospace);
+    }
+
+    .repository {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .date {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+  }
+}
+
+/** The aggregate numbers at the top of the content area. */
+.home-summary {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex-shrink: 0;
+  gap: var(--spacing);
+  padding: var(--spacing) var(--spacing-double);
+  border-bottom: var(--base-border);
+
+  .cards {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    gap: var(--spacing-double);
+    min-width: 0;
+  }
+
+  .summary-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 90px;
+
+    .value {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--spacing-third);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .label {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
+    &.emphasis .value {
+      color: var(--accent-color);
+    }
+  }
+
+  .status {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+
+    .scanning {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+  }
+}
+
+/** The details card for whichever repository is selected in the list. */
+.home-repository-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: var(--spacing-double);
+  min-height: 0;
+  padding: var(--spacing-double) var(--spacing-quint);
+  overflow-y: auto;
+
+  &.no-selection {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    .blankslate-image {
+      max-width: 300px;
+      min-width: auto;
+      margin: 0 auto;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .description {
+      max-width: 400px;
+      color: var(--text-secondary-color);
+    }
+  }
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing);
+
+    .titles {
+      min-width: 0;
+    }
+
+    .title {
+      @include ellipsis;
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .path {
+      @include ellipsis;
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-half);
+
+    .row {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--spacing);
+
+      .property {
+        flex-shrink: 0;
+        width: 160px;
+        color: var(--text-secondary-color);
+      }
+
+      .value {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-third);
+        min-width: 0;
+
+        .mine {
+          color: var(--text-secondary-color);
+        }
+      }
+
+      &.error,
+      &.hint {
+        align-items: center;
+        gap: var(--spacing-half);
+        font-size: var(--font-size-sm);
+      }
+
+      &.error {
+        color: var(--md-danger-fg-color);
+      }
+
+      &.hint {
+        color: var(--text-secondary-color);
+      }
+    }
+  }
+
+  .recent-commits {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-half);
+
+    > .header {
+      display: block;
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .commit {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      gap: var(--spacing-half);
+      font-size: var(--font-size-sm);
+
+      .sha {
+        flex-shrink: 0;
+        font-family: var(--font-family-monospace);
+      }
+
+      .summary {
+        @include ellipsis;
+        flex: 1 1 auto;
+      }
+
+      .author,
+      .date {
+        flex-shrink: 0;
+        color: var(--text-secondary-color);
+      }
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-half);
+  }
+}
+
+/** The receipt left behind by a "pull updates everywhere" run. */
+.home-pull-results {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: var(--spacing);
+  min-height: 0;
+  padding: var(--spacing-double) var(--spacing-quint);
+  overflow-y: auto;
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .title {
+      flex: 1 1 auto;
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+
+  .counts {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-double);
+    font-size: var(--font-size-sm);
+
+    .updated {
+      color: var(--status-success-color);
+    }
+
+    .problems {
+      color: var(--md-danger-fg-color);
+    }
+
+    .skipped {
+      color: var(--text-secondary-color);
+    }
+  }
+
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-third);
+
+    .section-header {
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+
+  .result {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+
+    .name {
+      flex-shrink: 0;
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .message {
+      @include ellipsis;
+      flex: 1 1 auto;
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+  }
+}

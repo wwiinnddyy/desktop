@@ -93,6 +93,41 @@ export async function merge(
 const noopMergeMessage = 'Already up to date.\n'
 
 /**
+ * Fast-forward the current branch to the given ref.
+ *
+ * As opposed to `merge` this will never create a merge commit and never leave
+ * the repository in a conflicted state. If the branch can't be fast-forwarded
+ * (because it has diverged, because the working directory is dirty or because
+ * the ref isn't reachable) Git bails out before touching anything which is
+ * precisely the property we need when bringing a lot of repositories up to date
+ * without the user looking over its shoulder.
+ */
+export async function fastForwardMerge(
+  repository: Repository,
+  ref: string
+): Promise<MergeResult> {
+  const { exitCode, stdout } = await git(
+    ['merge', '--ff-only', '--', ref],
+    repository.path,
+    'fastForwardMerge',
+    {
+      // Git exits with 1 when a fast-forward isn't possible and that's not an
+      // error worth surfacing to the user, it's a decision point for the
+      // caller.
+      successExitCodes: new Set([0, 1]),
+    }
+  )
+
+  if (exitCode !== 0) {
+    return MergeResult.Failed
+  }
+
+  return stdout === noopMergeMessage
+    ? MergeResult.AlreadyUpToDate
+    : MergeResult.Success
+}
+
+/**
  * Find the base commit between two commit-ish identifiers
  *
  * @returns the commit id of the merge base, or null if the two commit-ish

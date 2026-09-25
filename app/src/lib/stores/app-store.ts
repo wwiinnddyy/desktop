@@ -279,6 +279,7 @@ import { RepositoryStateCache } from './repository-state-cache'
 import { readEmoji } from '../read-emoji'
 import { Emoji } from '../emoji'
 import { GitStoreCache } from './git-store-cache'
+import { HomeStore } from './home-store'
 import { GitErrorContext } from '../git-error-context'
 import {
   setNumber,
@@ -450,6 +451,12 @@ import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 /**
+ * Whether the app was showing the Home view when the user last quit, in which
+ * case we'll return them to the Home view on the next launch.
+ */
+const HomeViewSelectedKey = 'home-view-selected'
+
+/**
  * Upper bound on how many pull requests we'll resolve (across both sides)
  * when gathering Copilot conflict-resolution context. Caps best-effort API
  * lookups so a noisy set of `#NNNN` references can't stall resolution.
@@ -593,6 +600,13 @@ export const showChangesFilterDefault = true
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
 
+  /**
+   * The store backing the Home view. Owned by the app store because it needs to
+   * share the GitStore cache, and the repository indicator updater, with the rest
+   * of the app.
+   */
+  public readonly homeStore: HomeStore
+
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
   private recentRepositories: ReadonlyArray<number> = new Array<number>()
@@ -607,6 +621,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private readonly repositoryIndicatorUpdater: RepositoryIndicatorUpdater
 
   private showWelcomeFlow = false
+
+  /**
+   * Whether the app is showing the Home view. Restored from local storage on
+   * startup so that users who live in the Home view land there again after a
+   * restart. See also `_selectHome` and the notes in `_selectRepository`.
+   */
+  private showHome = getBoolean(HomeViewSelectedKey, false)
+
   private focusCommitMessage = false
   private currentFoldout: Foldout | null = null
   private currentBanner: Banner | null = null
@@ -838,6 +860,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
         this.repositoryIndicatorUpdater.start()
       }
     }, InitialRepositoryIndicatorTimeout)
+
+    this.homeStore = new HomeStore({
+      getGitStore: repository => this.gitStoreCache.get(repository),
+      refreshRepositoryIndicators: repository =>
+        this.refreshIndicatorForRepository(repository),
+      pauseRepositoryIndicators: () => this.repositoryIndicatorUpdater.pause(),
+      resumeRepositoryIndicators: () =>
+        this.repositoryIndicatorUpdater.resume(),
+    })
 
     API.onTokenInvalidated(this.onTokenInvalidated)
 
@@ -1292,6 +1323,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       currentFoldout: this.currentFoldout,
       errorCount: this.popupManager.getPopupsOfType(PopupType.Error).length,
       showWelcomeFlow: this.showWelcomeFlow,
+      showHome: this.showHome,
       focusCommitMessage: this.focusCommitMessage,
       emoji: this.emoji,
       sidebarWidth: this.sidebarWidth,
@@ -2138,6 +2170,39 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  /**
+   * Show the Home view, ie the aggregate view of all the repositories that
+   * have been added to the app.
+   *
+   * The Home view isn't a selection so we clear the current one, which has the
+   * added benefit of tearing down all of the per-repository background tasks
+   * (fetching, pull request updating, branch pruning) that we otherwise
+   * wouldn't want to keep running while the user is looking at the overview.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public _selectHome(): void {
+    if (this.showHome) {
+      return
+    }
+
+    this.showHome = true
+    setBoolean(HomeViewSelectedKey, true)
+
+    this._selectRepository(null)
+    this.emitUpdate()
+  }
+
+  /** Leave the Home view, if we're currently showing it. */
+  private dismissHome(): void {
+    if (!this.showHome) {
+      return
+    }
+
+    this.showHome = false
+    setBoolean(HomeViewSelectedKey, false)
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _selectRepository(
     repository: Repository | CloningRepository | null
@@ -2154,6 +2219,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
       (!(repository instanceof Repository) || !repository.isTutorialRepository)
     ) {
       this.currentOnboardingTutorialStep = TutorialStep.NotApplicable
+    }
+
+    // Selecting anything takes the user out of the Home view again. We
+    // deliberately leave showHome alone when the selection becomes null since
+    // that's how `_selectHome` clears the selection, and because removing the
+    // selected repository while the Home view isn't shown shouldn't suddenly
+    // make it appear.
+    if (repository !== null) {
+      this.dismissHome()
     }
 
     this.selectedRepository = repository
@@ -2948,6 +3022,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null =
       this.selectedRepository
+
+    // When restoring the Home view after a launch we don't want to
+    // automatically select the last used repository, that's what the
+    // dismissHome call in _selectRepository would do for us.
+    if (this.showHome && selectedRepository === null) {
+      return
+    }
+
     if (selectedRepository) {
       const r =
         this.repositories.find(

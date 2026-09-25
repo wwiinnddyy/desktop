@@ -146,6 +146,17 @@ export interface IAppState {
   readonly appIsFocused: boolean
 
   readonly showWelcomeFlow: boolean
+
+  /**
+   * Whether or not the app is showing the Home view, ie the aggregate view of
+   * all the repositories that have been added to the app.
+   *
+   * The Home view is not a selection (see PossibleSelections) which means
+   * `selectedState` is always null while this is true, and selecting a
+   * repository always takes the user out of the Home view again.
+   */
+  readonly showHome: boolean
+
   readonly focusCommitMessage: boolean
   readonly currentPopup: Popup | null
   readonly allPopups: ReadonlyArray<Popup>

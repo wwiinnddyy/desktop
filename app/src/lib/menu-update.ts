@@ -126,6 +126,7 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'create-branch',
   'show-changes',
   'show-history',
+  'show-home',
   'show-repository-list',
   'show-branches-list',
   'open-working-directory',
@@ -399,7 +400,8 @@ function getMenuState(state: IAppState): Map<MenuIDs, IMenuItemState> {
     .merge(getRepositoryMenuBuilder(state))
     .merge(getAppMenuBuilder(state))
     .merge(getInWelcomeFlowBuilder(state.showWelcomeFlow))
-    .merge(getNoRepositoriesBuilder(state)).state
+    .merge(getNoRepositoriesBuilder(state))
+    .merge(getHomeViewBuilder(state)).state
 }
 
 function getAllMenusEnabledBuilder(): MenuStateBuilder {
@@ -436,6 +438,7 @@ function getInWelcomeFlowBuilder(inWelcomeFlow: boolean): MenuStateBuilder {
 function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
   const noRepositoriesDisabledIds: ReadonlyArray<MenuIDs> = [
     'show-repository-list',
+    'show-home',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()
@@ -444,6 +447,22 @@ function getNoRepositoriesBuilder(state: IAppState): MenuStateBuilder {
       menuStateBuilder.disable(id)
     }
   }
+
+  return menuStateBuilder
+}
+
+/**
+ * The Home view is a destination rather than a selection which means there's
+ * nothing to do when we're already looking at it, and nothing to look at while
+ * the welcome flow is still in the way.
+ */
+function getHomeViewBuilder(state: IAppState): MenuStateBuilder {
+  const menuStateBuilder = new MenuStateBuilder()
+
+  menuStateBuilder.setEnabled(
+    'show-home',
+    state.repositories.length > 0 && !state.showHome && !state.showWelcomeFlow
+  )
 
   return menuStateBuilder
 }
