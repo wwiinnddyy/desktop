@@ -90,6 +90,42 @@
   }
 }
 
+.home-total-summary {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: var(--spacing-half);
+  padding: var(--spacing);
+  border-bottom: var(--base-border);
+
+  .title {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-half) var(--spacing);
+  }
+
+  .total-stat {
+    min-width: 0;
+  }
+
+  .value {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-third);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .label {
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+  }
+}
+
 /** The searchable list of repositories. */
 .home-repository-list,
 .home-commit-list {

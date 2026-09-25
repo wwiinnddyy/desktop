@@ -92,7 +92,8 @@ export class HomeStore extends TypedBaseStore<IHomeStoreState> {
   private readonly scans = new Map<number, IRepositoryScanResult>()
 
   private scanning = false
-  private pendingScan = false
+  private pendingRepositories: ReadonlyArray<Repository> | null = null
+  private pendingAccounts: ReadonlyArray<Account> | null = null
   private scanDone = 0
   private scanTotal = 0
 
@@ -138,7 +139,8 @@ export class HomeStore extends TypedBaseStore<IHomeStoreState> {
     accounts: ReadonlyArray<Account>
   ): Promise<void> {
     if (this.scanning) {
-      this.pendingScan = true
+      this.pendingRepositories = repositories
+      this.pendingAccounts = accounts
       return
     }
 
@@ -174,9 +176,15 @@ export class HomeStore extends TypedBaseStore<IHomeStoreState> {
       this.scanning = false
       this.emitUpdate(this.getState())
 
-      if (this.pendingScan) {
-        this.pendingScan = false
-        this.ensureRepositoriesScanned(repositories, accounts)
+      if (this.pendingRepositories !== null && this.pendingAccounts !== null) {
+        const pendingRepositories = this.pendingRepositories
+        const pendingAccounts = this.pendingAccounts
+        this.pendingRepositories = null
+        this.pendingAccounts = null
+        void this.ensureRepositoriesScanned(
+          pendingRepositories,
+          pendingAccounts
+        )
       }
     }
   }

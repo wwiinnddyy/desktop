@@ -85,6 +85,8 @@ interface ISectionFilterListProps<T extends IFilterListItem, GroupIdentifier> {
   /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
 
+  readonly renderPreContent?: () => JSX.Element | null
+
   /**
    * This function will be called when a pointer device is pressed and then
    * released on a selectable row. Note that this follows the conventions
@@ -331,6 +333,8 @@ export class SectionFilterList<
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
         {this.renderFilterRow()}
+
+        {this.props.renderPreContent?.()}
 
         <div className="filter-list-container">{this.renderContent()}</div>
       </div>

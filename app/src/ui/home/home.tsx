@@ -27,6 +27,7 @@ import { HomeCommitList } from './home-commit-list'
 import { HomeRepositoryDetails } from './home-repository-details'
 import { HomePullResults } from './home-pull-results'
 import { HomeSummary } from './home-summary'
+import { HomeTotalSummary } from './home-total-summary'
 
 interface IHomeViewProps {
   readonly dispatcher: Dispatcher
@@ -75,6 +76,7 @@ export class HomeView extends React.Component<IHomeViewProps, IHomeViewState> {
    * comparisons, and therefore memoization, useless here.
    */
   private repositoryKey = ''
+  private accountsKey = ''
 
   public constructor(props: IHomeViewProps) {
     super(props)
@@ -95,15 +97,21 @@ export class HomeView extends React.Component<IHomeViewProps, IHomeViewState> {
     window.addEventListener('keydown', this.onGlobalKeyDown)
 
     this.repositoryKey = this.getRepositoryKey()
-    this.ensureScanned()
+    this.accountsKey = this.getAccountsKey()
+    this.refreshScans()
   }
 
   public componentDidUpdate() {
     const repositoryKey = this.getRepositoryKey()
+    const accountsKey = this.getAccountsKey()
 
-    if (repositoryKey !== this.repositoryKey) {
+    if (
+      repositoryKey !== this.repositoryKey ||
+      accountsKey !== this.accountsKey
+    ) {
       this.repositoryKey = repositoryKey
-      this.ensureScanned()
+      this.accountsKey = accountsKey
+      this.refreshScans()
     }
   }
 
@@ -120,15 +128,25 @@ export class HomeView extends React.Component<IHomeViewProps, IHomeViewState> {
     this.setState({ homeState })
   }
 
-  private ensureScanned() {
-    this.props.homeStore.ensureRepositoriesScanned(
-      this.props.repositories,
-      this.props.accounts
-    )
+  private refreshScans() {
+    this.props.homeStore.refresh(this.props.repositories, this.props.accounts)
+  }
+
+  private getAccountsKey() {
+    return this.props.accounts
+      .map(account =>
+        [
+          account.id,
+          account.endpoint,
+          account.login,
+          ...account.emails.map(email => email.email),
+        ].join(':')
+      )
+      .join(',')
   }
 
   private onRefresh = () => {
-    this.props.homeStore.refresh(this.props.repositories, this.props.accounts)
+    this.refreshScans()
   }
 
   public render() {
@@ -159,6 +177,7 @@ export class HomeView extends React.Component<IHomeViewProps, IHomeViewState> {
         this.state.selectedTab === HomeTab.History
           ? HomeTab.Changes
           : HomeTab.History,
+      filterText: '',
     })
   }
 
@@ -256,6 +275,7 @@ export class HomeView extends React.Component<IHomeViewProps, IHomeViewState> {
           description="Home sidebar"
         >
           {this.renderTabs()}
+          <HomeTotalSummary summary={summarize(this.getInfos())} />
           {this.renderSidebarContents()}
         </Resizable>
       </FocusContainer>
