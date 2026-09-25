@@ -63,6 +63,10 @@ on:
         default: false
         type: boolean
         required: false
+      run-e2e:
+        default: false
+        type: boolean
+        required: false
       error-reporting-endpoint:
         default: ''
         type: string
@@ -189,6 +193,8 @@ jobs:
             dist/bundle-hash.json
           if-no-files-found: error
   e2e-smoke:
+    if:
+      ${{ inputs.run-e2e == true || github.event_name != 'workflow_dispatch' }}
     name: E2E Smoke ${{ matrix.friendlyName }} ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     permissions:
