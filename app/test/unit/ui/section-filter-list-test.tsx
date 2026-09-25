@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test'
+import { beforeEach, describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as React from 'react'
 
@@ -7,6 +7,19 @@ import { IFilterListItem } from '../../../src/ui/lib/filter-list'
 import { render } from '../../helpers/ui/render'
 
 type ITestItem = IFilterListItem
+
+class TestResizeObserver {
+  public observe() {}
+  public unobserve() {}
+  public disconnect() {}
+}
+
+beforeEach(() => {
+  Object.assign(globalThis, { ResizeObserver: TestResizeObserver })
+  if (typeof window !== 'undefined') {
+    Object.assign(window, { ResizeObserver: TestResizeObserver })
+  }
+})
 
 const item: ITestItem = { id: 'repository', text: ['repository'] }
 const renderPreList = () => <div data-testid="pre-list" />
