@@ -56,8 +56,7 @@ function createInfo(
 
   return {
     repository,
-    aheadBehind:
-      ahead === 0 && behind === 0 ? null : { ahead, behind: behind },
+    aheadBehind: ahead === 0 && behind === 0 ? null : { ahead, behind: behind },
     changedFilesCount,
     scan,
   }
@@ -110,7 +109,9 @@ describe('Home aggregate', () => {
   describe('#toHomeRepositoryInfos', () => {
     it('merges the shared indicator cache with the scans', () => {
       const repository = createRepository(7, 'seven')
-      const lookup = new Map([[7, { aheadBehind: { ahead: 1, behind: 2 }, changedFilesCount: 4 }]])
+      const lookup = new Map([
+        [7, { aheadBehind: { ahead: 1, behind: 2 }, changedFilesCount: 4 }],
+      ])
       const scan = createScan(repository, 5, 2)
 
       const infos = toHomeRepositoryInfos(
@@ -236,7 +237,12 @@ describe('Home aggregate', () => {
       }
 
       const merged = getRecentCommits(
-        [{ ...createInfo(1, 'a'), scan: createScan(repository, 10, 0, commits) }],
+        [
+          {
+            ...createInfo(1, 'a'),
+            scan: createScan(repository, 10, 0, commits),
+          },
+        ],
         3
       )
 

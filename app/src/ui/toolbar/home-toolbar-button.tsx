@@ -100,9 +100,7 @@ export class HomeToolbarButton extends React.Component<
       <ToolbarButton
         className="home-pull-button"
         style={ToolbarButtonStyle.Subtitle}
-        title={
-          state.phase === 'cancelled' ? 'Pull cancelled' : 'Pull complete'
-        }
+        title={state.phase === 'cancelled' ? 'Pull cancelled' : 'Pull complete'}
         description={description}
         tooltip="Pull updates in all of your repositories again"
         icon={icon}

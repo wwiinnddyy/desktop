@@ -65,9 +65,7 @@ export class HomePullResults extends React.Component<
 
     const updated = pullAll.results.filter(isSuccess)
     const problems = pullAll.results.filter(isFailure)
-    const skipped = pullAll.results.filter(
-      x => !isSuccess(x) && !isFailure(x)
-    )
+    const skipped = pullAll.results.filter(x => !isSuccess(x) && !isFailure(x))
 
     const running = pullAll.phase === 'fetch' || pullAll.phase === 'merge'
 

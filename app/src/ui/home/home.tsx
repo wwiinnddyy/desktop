@@ -2,10 +2,7 @@ import * as React from 'react'
 import { Disposable } from 'event-kit'
 
 import { Dispatcher } from '../dispatcher'
-import {
-  IHomeStoreState,
-  HomeStore,
-} from '../../lib/stores/home-store'
+import { IHomeStoreState, HomeStore } from '../../lib/stores/home-store'
 import { Account } from '../../models/account'
 import {
   getGitHubHtmlUrl,
@@ -167,8 +164,7 @@ export class HomeView extends React.Component<IHomeViewProps, IHomeViewState> {
 
   private onTabClicked = (tab: Tab) => {
     this.setState({
-      selectedTab:
-        tab === Tab.History ? HomeTab.History : HomeTab.Changes,
+      selectedTab: tab === Tab.History ? HomeTab.History : HomeTab.Changes,
       // The two tabs filter completely different things so carrying the text
       // from one over to the other is only ever confusing.
       filterText: '',

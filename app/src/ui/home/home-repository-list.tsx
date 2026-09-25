@@ -203,9 +203,9 @@ const HomeRepositoryListItem = ({
           <TooltippedContent
             tagName="div"
             className="behind"
-            tooltip={`Behind its upstream branch by ${aheadBehind.behind} commit${
-              aheadBehind.behind === 1 ? '' : 's'
-            }`}
+            tooltip={`Behind its upstream branch by ${
+              aheadBehind.behind
+            } commit${aheadBehind.behind === 1 ? '' : 's'}`}
           >
             <Octicon symbol={octicons.arrowDown} />
             {aheadBehind.behind}
@@ -216,9 +216,9 @@ const HomeRepositoryListItem = ({
           <TooltippedContent
             tagName="div"
             className="ahead"
-            tooltip={`Ahead of its upstream branch by ${aheadBehind.ahead} commit${
-              aheadBehind.ahead === 1 ? '' : 's'
-            }`}
+            tooltip={`Ahead of its upstream branch by ${
+              aheadBehind.ahead
+            } commit${aheadBehind.ahead === 1 ? '' : 's'}`}
           >
             <Octicon symbol={octicons.arrowUp} />
             {aheadBehind.ahead}

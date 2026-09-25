@@ -75,9 +75,7 @@ export class HomeCommitList extends React.Component<IHomeCommitListProps, {}> {
         <Octicon className="icon" symbol={octicons.person} />
         <span className="author">{item.commit.authorName}</span>
         <span className="separator">in</span>
-        <span className="repository">
-          {nameOf(item.commit.repository)}
-        </span>
+        <span className="repository">{nameOf(item.commit.repository)}</span>
         <RelativeTime
           className="date"
           date={item.commit.date}

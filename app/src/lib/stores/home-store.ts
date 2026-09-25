@@ -280,7 +280,9 @@ export class HomeStore extends TypedBaseStore<IHomeStoreState> {
               results.push({
                 repository,
                 kind: 'failed',
-                message: `Unable to prepare ${repository.name}: ${getErrorMessage(e)}`,
+                message: `Unable to prepare ${
+                  repository.name
+                }: ${getErrorMessage(e)}`,
               })
               this.advancePullAllProgress(repository)
               return
@@ -366,9 +368,7 @@ export class HomeStore extends TypedBaseStore<IHomeStoreState> {
    * what was last fetched, which is why we have to fetch before we're allowed to
    * conclude that a repository is up to date.
    */
-  private async fetchAndDecide(
-    repository: Repository
-  ): Promise<FetchOutcome> {
+  private async fetchAndDecide(repository: Repository): Promise<FetchOutcome> {
     const skip = (
       kind: IPullAllResult['kind'],
       message: string | null = null

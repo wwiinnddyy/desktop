@@ -103,10 +103,7 @@ export class HomeRepositoryDetails extends React.Component<
               <span className="value">
                 {scan.commitCount ?? '–'}
                 {scan.commitCount !== null && scan.commitCount > 0 && (
-                  <span className="mine">
-                    {' '}
-                    ({scan.myCommitCount} by you)
-                  </span>
+                  <span className="mine"> ({scan.myCommitCount} by you)</span>
                 )}
               </span>
             </div>
@@ -122,9 +119,8 @@ export class HomeRepositoryDetails extends React.Component<
           {pullable && (
             <div className="row hint">
               <Octicon symbol={octicons.arrowDown} />
-              Waiting to be pulled. Use{' '}
-              <strong>Pull updates</strong> in the toolbar, or open the
-              repository and pull from there.
+              Waiting to be pulled. Use <strong>Pull updates</strong> in the
+              toolbar, or open the repository and pull from there.
             </div>
           )}
         </div>
