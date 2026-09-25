@@ -27,26 +27,31 @@ interface IResultRowProps {
   readonly onOpenRepository: (repository: Repository) => void
 }
 
-const ResultRow = ({ result, symbol, onOpenRepository }: IResultRowProps) => {
-  const repository = result.repository
+class ResultRow extends React.Component<IResultRowProps> {
+  public render() {
+    const { result, symbol } = this.props
+    const repository = result.repository
 
-  const onOpen = () => onOpenRepository(repository)
+    return (
+      <div className="result">
+        <Octicon className="icon" symbol={symbol} />
+        <span className="name">{nameOf(repository)}</span>
+        <span className="message">{result.message}</span>
+        <Button
+          className="open"
+          size="small"
+          tooltip={`Open ${nameOf(repository)} in Desktop`}
+          onClick={this.onOpen}
+        >
+          Open
+        </Button>
+      </div>
+    )
+  }
 
-  return (
-    <div className="result">
-      <Octicon className="icon" symbol={symbol} />
-      <span className="name">{nameOf(repository)}</span>
-      <span className="message">{result.message}</span>
-      <Button
-        className="open"
-        size="small"
-        tooltip={`Open ${nameOf(repository)} in Desktop`}
-        onClick={onOpen}
-      >
-        Open
-      </Button>
-    </div>
-  )
+  private onOpen = () => {
+    this.props.onOpenRepository(this.props.result.repository)
+  }
 }
 
 /**

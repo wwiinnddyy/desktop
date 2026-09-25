@@ -4367,11 +4367,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       const isBackgroundTask = true
       const gitStore = this.gitStoreCache.get(repo)
 
-      await this.withPushPullFetch(repo, () =>
-        gitStore.fetch(isBackgroundTask, progress =>
+      await this.withPushPullFetch(repo, async () => {
+        await gitStore.fetch(isBackgroundTask, progress =>
           this.updatePushPullFetchProgress(repo, progress)
         )
-      )
+      })
       this.updatePushPullFetchProgress(repo, null)
 
       return gitStore.aheadBehind
